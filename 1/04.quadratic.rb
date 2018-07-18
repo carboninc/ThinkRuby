@@ -11,10 +11,11 @@ c = gets.to_i
 d = b**2 - (4 * a * c)
 
 if d > 0
-  x1 = (-b + Math.sqrt(d)) / (2 * a)
-  x2 = (-b - Math.sqrt(d)) / (2 * a)
+  discriminant = Math.sqrt(d)
+  x1 = (-b + discriminant) / (2 * a)
+  x2 = (-b - discriminant) / (2 * a)
   puts "Дискриминант равен #{d}, один корень равен #{x1}, второй корень равен #{x2}"
-elsif d.zero? && x1 == x2
+elsif d.zero?
   x = -b / (2 * a)
   puts "Дискриминант равен #{d}, корень равен #{x}"
 else
