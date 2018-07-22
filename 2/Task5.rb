@@ -1,4 +1,17 @@
-require 'date'
+months = {
+  january: 31,
+  february: 28,
+  march: 31,
+  april: 30,
+  may: 31,
+  june: 30,
+  july: 31,
+  august: 31,
+  september: 30,
+  october: 31,
+  november: 30,
+  december: 31
+}
 
 puts 'Укажите число:'
 day = gets.to_i
@@ -9,17 +22,14 @@ month = gets.to_i
 puts 'Укажите год'
 year = gets.to_i
 
-beginning_year = Date.new(year, 1, 1).jd
+months[:february] = 29 if (year % 4).zero? || (year % 400).zero?
 
-date = Date.new(year, month, day).jd
+result = day
 
-result = date - beginning_year
+i = 0
+while i < month
+  result += months.values[i]
+  i += 1
+end
 
-# if (year % 4).zero? || (year % 400).zero?
-#   puts result + 1
-# else
-#   puts result
-# end
-
-# Он сам учитывает високосный год или нет, но сверху я оставил алгоритм на всякий случай
-puts result
+puts "Указанная дата является #{result} в этом году"

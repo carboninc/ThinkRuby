@@ -1,14 +1,12 @@
-fibonacci_numbers = []
+fibonacci_numbers = [0]
 
-current_number = 1
 previous_number = 1
 
-loop do
-  fibonacci_numbers.push(current_number)
-  sum = current_number + previous_number
-  previous_number = current_number
-  current_number = sum
-  break if current_number > 100
+while true
+  sum = fibonacci_numbers.last + previous_number
+  break if sum > 100
+  previous_number = fibonacci_numbers.last
+  fibonacci_numbers.push(sum)
 end
 
 puts fibonacci_numbers
