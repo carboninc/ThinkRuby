@@ -1,6 +1,6 @@
 products = {}
 
-while true
+until products['стоп']
   puts 'Введите название товара:'
   product_name = gets.chomp
 
