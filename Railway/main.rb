@@ -148,9 +148,13 @@ end
 def create_route
   puts 'Создание маршрута:'
   puts 'Введите начальную станцию маршрута:'
-  start_station = gets.chomp.to_s
-  puts 'Введите конечную станцию маршрута'
-  end_station = gets.chomp.to_s
+  select_station
+  select_start = gets.chomp.to_i
+  start_station = @stations[select_start - 1]
+  puts 'Введите конечную станцию маршрута:'
+  select_station
+  select_end = gets.chomp.to_i
+  end_station = @stations[select_end - 1]
   @routes << Route.new(start_station, end_station)
   puts 'Маршрут создан!'
   puts '-----------'
@@ -187,7 +191,7 @@ end
 def select_route
   index = 1
   @routes.each do |route|
-    puts "#{index}. Маршрут: #{route.stations.first} - #{route.stations.last}"
+    puts "#{index}. Маршрут: #{route.stations.first.name} - #{route.stations.last.name}"
     index += 1
   end
 end
@@ -197,6 +201,14 @@ def show_routes
   puts '-----------'
   puts ''
   routes_menu
+end
+
+def select_station
+  index = 1
+  @stations.each do |station|
+    puts "#{index}. #{station.name}"
+    index += 1
+  end
 end
 
 # Trains menu and it's routes
@@ -256,7 +268,7 @@ def trains_menu_router(select)
     trains_menu
   end
 end
-
+# Trains methods
 def select_train
   index = 1
   @trains.each do |train|
