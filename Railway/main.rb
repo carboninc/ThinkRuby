@@ -43,7 +43,7 @@ def main_menu_router(select)
   when 0
     abort('Всего доброго!')
   else
-    puts 'Ошибка ввода, выберите доступный вариант'
+    puts 'Ошибка ввода, выберите доступный вариант.'
     puts '-----------'
     puts ''
     main_menu
@@ -76,7 +76,7 @@ def stations_menu_router(select)
     puts ''
     main_menu
   else
-    puts 'Ошибка ввода, выберите доступный вариант'
+    puts 'Ошибка ввода, выберите доступный вариант.'
     puts '-----------'
     puts ''
     stations_menu
@@ -148,7 +148,7 @@ def routes_menu_router(select)
     puts ''
     main_menu
   else
-    puts 'Ошибка ввода, выберите доступный вариант'
+    puts 'Ошибка ввода, выберите доступный вариант.'
     puts '-----------'
     puts ''
     routes_menu
@@ -157,6 +157,8 @@ end
 
 # Routes methods
 def create_route
+  check_stations
+
   puts 'Создание маршрута:'
 
   puts 'Введите начальную станцию маршрута:'
@@ -190,6 +192,10 @@ def create_route
 end
 
 def add_station
+  check_routes
+
+  check_stations
+
   puts 'Выберите маршрут для добавления станции:'
   select_route
   select = gets.chomp.to_i
@@ -219,6 +225,10 @@ def add_station
 end
 
 def delete_station
+  check_routes
+
+  check_stations
+
   puts 'Выберите маршрут для удаления станции:'
   select_route
   select = gets.chomp.to_i
@@ -228,18 +238,24 @@ def delete_station
     puts ''
     return delete_station
   end
+  selected_route = @routes[select - 1]
 
   puts 'Укажите название станции:'
-  select_station
-  delete_station = gets.chomp.to_s
-  if delete_station > @stations.length || delete_station < 1
+  index = 1
+  selected_route.stations.each do |station|
+    puts "#{index}. #{station.name}"
+    index += 1
+  end
+  delete_station = gets.chomp.to_i
+  if delete_station > selected_route.stations.length || delete_station < 1
     puts 'Ошибка! Такой станции нет, попробуйте еще раз.'
     puts '-----------'
     puts ''
     return delete_station
   end
+  selected_delete_station = selected_route.stations[delete_station - 1]
 
-  @routes[select - 1].delete_station(@stations[delete_station - 1])
+  selected_route.delete_station(selected_delete_station)
 
   puts 'Станция удалена!'
   puts '-----------'
@@ -248,6 +264,8 @@ def delete_station
 end
 
 def show_stations_in_route
+  check_routes
+
   puts 'Выберите маршрут для просмотра списка станций:'
   select_route
   selected_route = gets.chomp.to_i
@@ -255,7 +273,7 @@ def show_stations_in_route
     puts 'Ошибка! Такого маршрута нет, попробуйте еще раз.'
     puts '-----------'
     puts ''
-    return delete_station
+    return show_stations_in_route
   end
 
   puts 'Станции выбранного маршрута:'
@@ -422,6 +440,10 @@ def create_train
 end
 
 def add_train_route
+  check_trains
+
+  check_routes
+
   puts 'Выберите поезд для назначения ему маршрута:'
   select_train
   train = gets.chomp.to_i
@@ -444,7 +466,7 @@ def add_train_route
   end
   selected_route = @routes[route - 1]
 
-  selected_train.route(selected_route)
+  selected_train.add_route(selected_route)
 
   puts 'Маршрут добавлен!'
   puts '-----------'
@@ -453,6 +475,10 @@ def add_train_route
 end
 
 def attach_wagon
+  check_trains
+
+  check_wagons
+
   puts 'Выберите поезд для добавления вагона'
   select_train
   train = gets.chomp.to_i
@@ -484,6 +510,10 @@ def attach_wagon
 end
 
 def unhook_wagon
+  check_trains
+
+  check_wagons
+
   puts 'Выберите поезд для удаления вагона'
   select_train
   train = gets.chomp.to_i
@@ -503,6 +533,8 @@ def unhook_wagon
 end
 
 def forward_train
+  check_trains
+
   puts 'Выберите поезд для движения к следующей станции:'
   select_train
   train = gets.chomp.to_i
@@ -514,15 +546,23 @@ def forward_train
   end
 
   selected_train = @trains[train - 1]
+  if selected_train.route == ''
+    puts 'Ошибка! Не назначен маршрут для этого поезда.'
+    puts '-----------'
+    puts ''
+    return trains_menu
+  end
   move = selected_train.move_forward
 
-  puts "Поезд прибыл на станцию:  #{move}"
+  puts "Поезд прибыл на станцию:  #{move.name}"
   puts '-----------'
   puts ''
   trains_menu
 end
 
 def backward_train
+  check_trains
+
   puts 'Выберите поезд для движения к предыдущей станции:'
   select_train
   train = gets.chomp.to_i
@@ -534,12 +574,55 @@ def backward_train
   end
 
   selected_train = @trains[train - 1]
+  if selected_train.route == ''
+    puts 'Ошибка! Не назначен маршрут для этого поезда.'
+    puts '-----------'
+    puts ''
+    return trains_menu
+  end
   move = selected_train.move_backward
 
-  puts "Поезд прибыл на станцию: #{move}"
+  puts "Поезд прибыл на станцию: #{move.name}"
   puts '-----------'
   puts ''
   trains_menu
+end
+
+# Handling Errors
+def check_stations
+  if @stations.length < 2
+    puts 'Список станций пуст или создана всего одна станция, создайте новую станцию!'
+    puts '-----------'
+    puts ''
+    stations_menu
+  end
+end
+
+def check_routes
+  if @routes.length.zero?
+    puts 'Список маршрутов пуст, создайте маршрут!'
+    puts '-----------'
+    puts ''
+    routes_menu
+  end
+end
+
+def check_trains
+  if @trains.length.zero?
+    puts 'Список поездов пуст, создайте поезд!'
+    puts '-----------'
+    puts ''
+    trains_menu
+  end
+end
+
+def check_wagons
+  if @trains.length.zero?
+    puts 'Список вагонов пуст, создайте вагон!'
+    puts '-----------'
+    puts ''
+    trains_menu
+  end
 end
 
 main_menu

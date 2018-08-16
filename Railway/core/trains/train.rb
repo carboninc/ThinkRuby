@@ -1,11 +1,12 @@
 # Train Class
 class Train
   attr_accessor :speed
-  attr_reader :number
+  attr_reader :number, :route
   def initialize(number)
     @number = number
     @wagons = []
     @speed = 0
+    @route = ''
   end
 
   def add_wagon(wagon)
@@ -16,7 +17,7 @@ class Train
     @wagons.pop if @speed.zero?
   end
 
-  def route(route)
+  def add_route(route)
     @route = route
     @current_station = 0
   end
