@@ -1,12 +1,25 @@
 # Train Class
 class Train
+  include Manufacturer
+  include InstanceCounter
+
   attr_accessor :speed
   attr_reader :number, :route, :wagons
-  def initialize(number)
+
+  @@trains = []
+
+  def self.find(number)
+    @@trains.select { |train| train.number == number }
+  end
+
+  def initialize(number, manufacturer = nil)
     @number = number
+    @manufacturer = manufacturer
     @wagons = []
     @speed = 0
     @route = ''
+    @@trains << self
+    register_instance
   end
 
   def add_wagon(wagon)
@@ -41,15 +54,13 @@ class Train
   end
 
   def current_station
-    if @current_station.zero?
-      @route.stations[1]
-    elsif @current_station == @route.stations.length - 1
-      @route.stations[-2]
-    else
-      current_station = @route.stations[@current_station]
-      prev_station = @route.stations[@current_station - 1]
-      next_station = @route.stations[@current_station + 1]
-      @current_stations = [prev_station, current_station, next_station]
-    end
+    return @route.stations[1] if @current_station.zero?
+    return @route.stations[-2] if @current_station == @route.stations.length - 1
+
+    current_stop = [
+      @route.stations[@current_station - 1],
+      @route.stations[@current_station],
+      @route.stations[@current_station + 1]
+    ]
   end
 end

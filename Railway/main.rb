@@ -1,3 +1,6 @@
+require_relative 'core/modules/manufacturer'
+require_relative 'core/modules/instance_counter'
+
 require_relative 'core/stations/station'
 require_relative 'core/routes/route'
 
@@ -5,7 +8,7 @@ require_relative 'core/trains/train'
 require_relative 'core/trains/passenger_train'
 require_relative 'core/trains/cargo_train'
 
-require_relative 'core/wagons/wagon.rb'
+require_relative 'core/wagons/wagon'
 
 @stations = []
 @trains = []
@@ -412,12 +415,16 @@ def create_train
   case select
   when 1
     puts 'Укажите номер поезда:'
-    number = gets.chomp.to_i
-    @trains << CargoTrain.new(number)
+    number = gets.chomp.to_s
+    puts 'Укажите производителя поезда:'
+    manufacturer = gets.chomp.to_s
+    @trains << CargoTrain.new(number, manufacturer)
   when 2
     puts 'Укажите номер поезда:'
-    number = gets.chomp.to_i
-    @trains << PassengerTrain.new(number)
+    number = gets.chomp.to_s
+    puts 'Укажите производителя поезда:'
+    manufacturer = gets.chomp.to_s
+    @trains << PassengerTrain.new(number, manufacturer)
   else
     puts 'Ошибка ввода, выберите доступный вариант'
     puts '-----------'
@@ -481,9 +488,13 @@ def attach_wagon
   selected_train = @trains[train - 1]
 
   if selected_train.class.name == 'CargoTrain'
-    wagon = Wagon.new('Грузовой')
+    puts 'Укажите производителя вагона:'
+    manufacturer = gets.chomp.to_s
+    wagon = Wagon.new('Cargo', manufacturer)
   else
-    wagon = Wagon.new('Пассажирский')
+    puts 'Укажите производителя вагона:'
+    manufacturer = gets.chomp.to_s
+    wagon = Wagon.new('Passenger', manufacturer)
   end
   @wagons << wagon
   selected_train.add_wagon(wagon)
