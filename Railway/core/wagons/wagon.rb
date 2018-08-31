@@ -2,8 +2,31 @@
 class Wagon
   include Manufacturer
   attr_reader :type
-  def initialize(type, manufacturer = nil)
+
+  @@wagons = []
+
+  def self.all
+    @@wagons
+  end
+
+  def initialize(type, manufacturer)
     @type = type
-    @manufacturer = manufacturer
+    @manufacturer = manufacturer.to_s
+    validate!
+    @@wagons << self
+  end
+
+  def valid?
+    validate!
+  rescue RuntimeError
+    false
+  end
+
+  private
+
+  def validate!
+    raise 'Укажите валидный тип вагона. Доступные варианты: Cargo или Passenger' if type != 'Cargo' && type != 'Passenger'
+    raise 'Укажите производителя вагона' if manufacturer.empty?
+    true
   end
 end

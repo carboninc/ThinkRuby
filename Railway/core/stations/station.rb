@@ -4,17 +4,24 @@ class Station
 
   attr_reader :name
 
-  @@stations = []
+  @@stations = {}
 
   def self.all
     @@stations
   end
 
   def initialize(name)
-    @name = name
+    @name = name.to_s
     @trains = []
-    @@stations << self
+    validate!
+    @@stations[name] = self
     register_instance
+  end
+
+  def valid?
+    validate!
+  rescue RuntimeError
+    false
   end
 
   def train_arrival(train)
@@ -33,5 +40,15 @@ class Station
 
   def train_departure(train)
     @trains.delete(train)
+  end
+
+  private
+
+  def validate!
+    raise 'Название станции не может быть пустым' if name.empty?
+    raise 'Название станции должно быть не менее 3 символов' if name.length < 3
+    @@stations.each_key do |key|
+      return raise 'Такая станция уже существует' if key == name
+    end
   end
 end
