@@ -34,7 +34,7 @@ class Route
 
   def validate!
     @stations.each do |station|
-      return raise 'В маршрут можно добавить только экземпляр класса Station' if station.is_a?(String) || station.is_a?(Numeric)
+      return raise 'В маршрут можно добавить только экземпляр класса Station' unless station.is_a?(Station)
     end
     raise 'Нельзя указывать станцию одновременно и начальной и конечной' if @stations[0] == @stations[-1]
     true

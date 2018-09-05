@@ -1,7 +1,7 @@
 # Wagons of trains. Types of wagons: passenger, cargo.
 class Wagon
   include Manufacturer
-  attr_reader :type
+  attr_reader :type, :number
 
   @@wagons = []
 
@@ -10,6 +10,7 @@ class Wagon
   end
 
   def initialize(type, manufacturer)
+    @number = rand(0...999_999)
     @type = type
     @manufacturer = manufacturer.to_s
     validate!

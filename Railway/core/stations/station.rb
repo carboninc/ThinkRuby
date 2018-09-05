@@ -42,6 +42,10 @@ class Station
     @trains.delete(train)
   end
 
+  def traverse_train
+    @trains.each.with_index(1) { |train, index| yield(train, index) }
+  end
+
   private
 
   def validate!

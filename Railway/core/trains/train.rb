@@ -44,16 +44,23 @@ class Train
     @wagons.pop if @speed.zero?
   end
 
+  def traverse_wagon
+    @wagons.each.with_index(1) { |wagon, index| yield(wagon, index) }
+  end
+
   def add_route(route)
     @route = route
     @current_station = 0
+    @route.stations[@current_station].train_arrival(self)
   end
 
   def move_forward
     if @current_station >= @route.stations.length - 1
       @route.stations.last
     else
+      @route.stations[@current_station].train_departure(self)
       @current_station += 1
+      @route.stations[@current_station].train_arrival(self)
       @route.stations[@current_station]
     end
   end
@@ -62,7 +69,9 @@ class Train
     if @current_station.zero?
       @route.stations.first
     else
+      @route.stations[@current_station].train_departure(self)
       @current_station -= 1
+      @route.stations[@current_station].train_arrival(self)
       @route.stations[@current_station]
     end
   end

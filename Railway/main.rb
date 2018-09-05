@@ -9,6 +9,8 @@ require_relative 'core/trains/passenger_train'
 require_relative 'core/trains/cargo_train'
 
 require_relative 'core/wagons/wagon'
+require_relative 'core/wagons/passenger_wagon'
+require_relative 'core/wagons/cargo_wagon'
 
 puts 'Добро пожаловать в программу по управлению железнодорожной станцией!'
 
@@ -53,6 +55,7 @@ end
 def stations_menu
   puts '1. Создать станцию'
   puts '2. Показать список станций'
+  puts '3. Показать список поездов на станции'
   puts '-----------'
   puts '0. Вернуться в главное меню'
 
@@ -70,6 +73,10 @@ def stations_menu_router(select)
     puts '-----------'
     puts ''
     show_stations
+  when '3'
+    puts '-----------'
+    puts ''
+    show_trains
   when '0'
     puts '-----------'
     puts ''
@@ -81,6 +88,7 @@ def stations_menu_router(select)
     stations_menu
   end
 end
+# ------------------------------------------------------------------
 
 # Stations methods
 def create_station
@@ -107,8 +115,33 @@ def show_stations
     return stations_menu
   end
 
-  Station.all.each_key { |station| puts station }
+  Station.all.each_key.with_index(1) { |station, index| puts "#{index}. #{station}" }
 
+  puts '-----------'
+  puts ''
+  stations_menu
+end
+
+def show_trains
+  check_stations
+  check_trains
+
+  puts 'Выберите станцию для вывода списка поездов:'
+  select_station
+  station = gets.chomp.to_i
+  if station > Station.all.length || station < 1
+    puts 'Ошибка! Такой станции нет, попробуйте еще раз.'
+    puts '-----------'
+    puts ''
+    return select_station
+  end
+  station_names = Station.all.keys
+  selected_station = Station.all[station_names[station - 1]]
+
+  puts 'Список поездов:'
+  selected_station.traverse_train do |train, index|
+    puts "#{index}. Поезд: #{train.number}. Тип: #{train.class.name}. Кол-во вагонов: #{train.wagons.length}."
+  end
   puts '-----------'
   puts ''
   stations_menu
@@ -162,6 +195,7 @@ def routes_menu_router(select)
     routes_menu
   end
 end
+# ------------------------------------------------------------------
 
 # Routes methods
 def create_route
@@ -334,10 +368,13 @@ end
 def trains_menu
   puts '1. Создать поезд'
   puts '2. Назначить маршрут поезду'
-  puts '3. Добавить вагон поезду'
-  puts '4. Отцепить вагон'
-  puts '5. Переместить поезд на следующую станцию'
-  puts '6. Переместить поезд на предыдущую станцию'
+  puts '3. Переместить поезд на следующую станцию'
+  puts '4. Переместить поезд на предыдущую станцию'
+  puts '-----------'
+  puts '5. Добавить вагон поезду'
+  puts '6. Отцепить вагон от поезда'
+  puts '7. Показать список вагонов у поезда'
+  puts '8. Занять место или объем в вагоне'
   puts '-----------'
   puts '0. Вернуться в главное меню'
 
@@ -358,19 +395,27 @@ def trains_menu_router(select)
   when '3'
     puts '-----------'
     puts ''
-    attach_wagon
+    forward_train
   when '4'
     puts '-----------'
     puts ''
-    unhook_wagon
+    backward_train
   when '5'
     puts '-----------'
     puts ''
-    forward_train
+    attach_wagon
   when '6'
     puts '-----------'
     puts ''
-    backward_train
+    unhook_wagon
+  when '7'
+    puts '-----------'
+    puts ''
+    wagons_list
+  when '8'
+    puts '-----------'
+    puts ''
+    take_wagon_place_or_volume
   when '0'
     puts '-----------'
     puts ''
@@ -382,6 +427,7 @@ def trains_menu_router(select)
     trains_menu
   end
 end
+# ------------------------------------------------------------------
 
 # Trains methods
 def select_train
@@ -478,11 +524,15 @@ def attach_wagon
   if selected_train.class.name == 'CargoTrain'
     puts 'Укажите производителя вагона:'
     manufacturer = gets.chomp.to_s
-    wagon = Wagon.new('Cargo', manufacturer)
+    puts 'Укажите объем вагона:'
+    places = gets.chomp.to_i
+    wagon = CargoWagon.new(manufacturer, places)
   else
     puts 'Укажите производителя вагона:'
     manufacturer = gets.chomp.to_s
-    wagon = Wagon.new('Passenger', manufacturer)
+    puts 'Укажите кол-во пассажирских мест в вагоне:'
+    volume = gets.chomp.to_i
+    wagon = PassengerWagon.new(manufacturer, volume)
   end
   selected_train.add_wagon(wagon)
 
@@ -517,6 +567,41 @@ def unhook_wagon
   selected_train.delete_wagon
 
   puts 'Вагон удален!'
+  puts '-----------'
+  puts ''
+  trains_menu
+end
+
+def wagons_list
+  check_trains
+
+  puts 'Выберите поезд для просмотра списка вагонов:'
+  select_train
+  train = gets.chomp.to_i
+  if train > Train.all.length || train < 1
+    puts 'Ошибка! Такого поезда нет, попробуйте еще раз.'
+    puts '-----------'
+    puts ''
+    return select_train
+  end
+  train_numbers = Train.all.keys
+  selected_train = Train.all[train_numbers[train - 1]]
+
+  if selected_train.wagons.length.zero?
+    puts 'У данного поезда нет вагонов.'
+    puts '-----------'
+    puts ''
+    return trains_menu
+  end
+
+  puts 'Список вагонов:'
+  selected_train.traverse_wagon do |wagon, index|
+    if wagon.is_a? (PassengerWagon)
+      puts "#{index}. Вагон: #{wagon.number}. Тип: #{wagon.type}. Кол-во свободных мест: #{wagon.free_places}. Кол-во занятых мест: #{wagon.busy_places}"
+    else
+      puts "#{index}. Вагон: #{wagon.number}. Тип: #{wagon.type}. Кол-во свободного объема: #{wagon.free_volume}. Кол-во занятого объема: #{wagon.busy_volume}"
+    end
+  end
   puts '-----------'
   puts ''
   trains_menu
@@ -579,6 +664,63 @@ def backward_train
   puts ''
   trains_menu
 end
+
+def take_wagon_place_or_volume
+  check_trains
+
+  puts 'Выберите поезд для просмотра списка вагонов:'
+  select_train
+  train = gets.chomp.to_i
+  if train > Train.all.length || train < 1
+    puts 'Ошибка! Такого поезда нет, попробуйте еще раз.'
+    puts '-----------'
+    puts ''
+    return select_train
+  end
+  train_numbers = Train.all.keys
+  selected_train = Train.all[train_numbers[train - 1]]
+
+  if selected_train.wagons.length.zero?
+    puts 'У данного поезда нет вагонов.'
+    puts '-----------'
+    puts ''
+    return trains_menu
+  end
+
+  puts 'Выберите вагон для занятия места или объема:'
+  selected_train.traverse_wagon do |wagon, index|
+    if wagon.is_a? (PassengerWagon)
+      puts "#{index}. Вагон: #{wagon.number}. Тип: #{wagon.type}. Кол-во свободных мест: #{wagon.free_places}. Кол-во занятых мест: #{wagon.busy_places}"
+    else
+      puts "#{index}. Вагон: #{wagon.number}. Тип: #{wagon.type}. Кол-во свободного объема: #{wagon.free_volume}. Кол-во занятого объема: #{wagon.busy_volume}"
+    end
+  end
+  wagon = gets.chomp.to_i
+  if wagon > Wagon.all.length || wagon < 1
+    puts 'Ошибка! Такого вагона нет, попробуйте еще раз.'
+    puts '-----------'
+    puts ''
+    return take_wagon_place_or_volume
+  end
+  selected_wagon = selected_train.wagons[wagon - 1]
+
+  if selected_wagon.is_a? (PassengerWagon)
+    selected_wagon.take_place
+    puts 'Вы заняли одно пассажирское место:'
+  else
+    puts 'Укажите объем, который вы хотите занять:'
+    value = gets.chomp.to_i
+    selected_wagon.take_volume(value)
+    puts 'Объем занят:'
+  end
+  puts '-----------'
+  puts ''
+  trains_menu
+rescue RuntimeError => e
+  puts "Ошибка: #{e}"
+  trains_menu
+end
+# ------------------------------------------------------------------
 
 # Checks
 def check_stations
